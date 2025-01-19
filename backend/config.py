@@ -1,5 +1,5 @@
 import os
-from dotenv import load_load_dotenv
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -15,9 +15,13 @@ class Config:
     CUSTOMER_BOT_TOKEN = os.getenv('CUSTOMER_BOT_TOKEN')
     DRIVER_BOT_TOKEN = os.getenv('DRIVER_BOT_TOKEN')
     
-    # Maps API
-    GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
-    YANDEX_MAPS_API_KEY = os.getenv('YANDEX_MAPS_API_KEY')
+    # City Boundaries (example for Moscow)
+    CITY_BOUNDS = {
+        'north': 56.0,
+        'south': 55.5,
+        'west': 37.0,
+        'east': 38.0
+    }
     
     # YooKassa
     YOOKASSA_SHOP_ID = os.getenv('YOOKASSA_SHOP_ID')
