@@ -1,35 +1,37 @@
-# TaxiMore Service
+# TaxiMore
 
-Comprehensive taxi service platform including customer and driver Telegram bots with a web-based admin panel.
+Комплексная платформа для такси-сервиса, включающая Telegram-боты для клиентов и водителей, а также веб-панель администратора.
 
-## Components
+## Основные компоненты
 
-### 1. Customer Telegram Bot
-- Location-based services
-- Destination input
-- Fare estimation
-- Vehicle class selection
-- Order tracking
-- Trip history
-- Feedback system
+### 1. Telegram-бот для клиентов
+- Определение местоположения
+- Ввод пункта назначения
+- Расчет стоимости поездки
+- Выбор класса автомобиля
+- Отслеживание заказа
+- История поездок
+- Система отзывов
 
-### 2. Driver Telegram Bot
-- Subscription-based access
-- Order management
-- Navigation integration
-- Reporting features
-- Status management
+### 2. Telegram-бот для водителей
+- Доступ по подписке
+- Управление заказами
+- Интеграция с навигацией
+- Система отчетности
+- Управление статусом
+- Автоматическое продление подписки
+- Уведомления о заказах
 
-### 3. Admin Web Panel
-- Order management
-- Driver management
-- Fare management
-- Reporting system
-- Driver location monitoring
-- Subscription management
-- Payment system integration
+### 3. Веб-панель администратора
+- Управление заказами
+- Управление водителями
+- Управление тарифами
+- Система отчетности
+- Мониторинг местоположения водителей
+- Управление подписками
+- Интеграция с платежной системой
 
-## Technical Stack
+## Технический стек
 
 - **Backend**: Python (Flask)
 - **Frontend**: React
