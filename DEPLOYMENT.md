@@ -144,6 +144,122 @@ supervisorctl start all
 systemctl restart nginx
 ```
 
+## 9. Настройка платежной системы (YooKassa)
+
+```bash
+# Создание директории для логов платежной системы
+mkdir -p /var/log/taximore/payments
+chown -R www-data:www-data /var/log/taximore/payments
+```
+
+Добавьте в .env файл следующие переменные:
+```bash
+YOOKASSA_SHOP_ID=your_shop_id
+YOOKASSA_SECRET_KEY=your_secret_key
+PAYMENT_WEBHOOK_URL=https://your-domain.com/api/payment/webhook
+```
+
+## 10. Настройка логирования
+
+```bash
+# Создание директорий для логов
+mkdir -p /var/log/taximore/{app,payments,geo,subscriptions}
+chown -R www-data:www-data /var/log/taximore
+
+# Настройка ротации логов
+cat > /etc/logrotate.d/taximore << EOF
+/var/log/taximore/*.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0640 www-data www-data
+    sharedscripts
+    postrotate
+        systemctl reload supervisor
+    endscript
+}
+EOF
+```
+
+## 11. Настройка мониторинга
+
+```bash
+# Установка Prometheus Node Exporter
+apt install -y prometheus-node-exporter
+
+# Установка Prometheus
+apt install -y prometheus
+
+# Настройка алертов для критических сервисов
+cat > /etc/prometheus/alerts.yml << EOF
+groups:
+- name: taximore
+  rules:
+  - alert: ServiceDown
+    expr: up == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Service {{ \$labels.job }} is down"
+  - alert: HighErrorRate
+    expr: rate(http_requests_total{status=~"5.."}[5m]) > 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High error rate detected"
+EOF
+```
+
+## 12. Настройка резервного копирования
+
+```bash
+# Создание скрипта для бэкапа
+cat > /usr/local/bin/backup_taximore.sh << EOF
+#!/bin/bash
+BACKUP_DIR="/var/backups/taximore"
+TIMESTAMP=\$(date +%Y%m%d_%H%M%S)
+
+# Бэкап базы данных
+pg_dump taximore > "\$BACKUP_DIR/db_\$TIMESTAMP.sql"
+
+# Бэкап конфигурации
+tar -czf "\$BACKUP_DIR/config_\$TIMESTAMP.tar.gz" /var/www/taximore/.env /etc/supervisor/conf.d/taximore.conf
+
+# Удаление старых бэкапов (старше 30 дней)
+find "\$BACKUP_DIR" -type f -mtime +30 -delete
+EOF
+
+chmod +x /usr/local/bin/backup_taximore.sh
+
+# Добавление в cron
+echo "0 3 * * * root /usr/local/bin/backup_taximore.sh" > /etc/cron.d/taximore-backup
+```
+
+## 13. Проверка развертывания
+
+```bash
+# Проверка статуса всех сервисов
+systemctl status nginx
+systemctl status postgresql
+systemctl status supervisor
+systemctl status prometheus
+systemctl status prometheus-node-exporter
+
+# Проверка логов
+tail -f /var/log/taximore/app/app.log
+tail -f /var/log/taximore/payments/payment.log
+tail -f /var/log/taximore/geo/geo.log
+tail -f /var/log/taximore/subscriptions/subscription.log
+
+# Проверка доступности API
+curl -I https://your-domain.com/api/health
+```
+
 ## Проверка работоспособности
 
 1. Проверьте статус сервисов:
@@ -168,4 +284,3 @@ cd frontend
 npm install
 npm run build
 supervisorctl restart all
-```

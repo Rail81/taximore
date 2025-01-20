@@ -42,3 +42,27 @@ class Config:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-jwt-secret-key')
     JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hour
     PASSWORD_SALT = os.getenv('PASSWORD_SALT', 'your-password-salt')
+    
+    # Rate Limiting
+    RATELIMIT_ENABLED = True
+    RATELIMIT_DEFAULT = "100/hour"
+    RATELIMIT_STORAGE_URL = "memory://"
+    
+    # CORS Settings
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*').split(',')
+    CORS_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    CORS_ALLOW_HEADERS = ['Content-Type', 'Authorization']
+    
+    # Security Headers
+    SECURITY_HEADERS = {
+        'X-Frame-Options': 'SAMEORIGIN',
+        'X-XSS-Protection': '1; mode=block',
+        'X-Content-Type-Options': 'nosniff',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+        'Content-Security-Policy': "default-src 'self'"
+    }
+    
+    # Logging
+    LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+    LOG_DIR = '/var/log/taximore'

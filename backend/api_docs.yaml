@@ -1,0 +1,101 @@
+openapi: 3.0.0
+info:
+  title: TaxiMore API
+  version: 1.0.0
+  description: API documentation for TaxiMore service
+
+servers:
+  - url: https://api.taximore.com/v1
+    description: Production server
+  - url: http://localhost:5000/v1
+    description: Development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+
+  /subscription/plans:
+    get:
+      summary: Get available subscription plans
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of subscription plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    price:
+                      type: number
+                    duration_days:
+                      type: integer
+
+  /payment/create:
+    post:
+      summary: Create new payment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                description:
+                  type: string
+                subscription_id:
+                  type: integer
+      responses:
+        '200':
+          description: Payment created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payment_url:
+                    type: string
+                  payment_id:
+                    type: string

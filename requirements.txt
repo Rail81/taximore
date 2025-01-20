@@ -17,3 +17,26 @@ aiohttp==3.9.1
 alembic==1.13.1
 bcrypt==4.1.2
 gunicorn==21.2.0
+
+# Security
+Flask-Limiter==3.5.0
+Flask-Cors==4.0.0
+Flask-SeaSurf==1.1.1
+Flask-Talisman==1.1.0
+
+# Documentation
+flasgger==0.9.7
+flask-swagger-ui==4.11.1
+
+# Testing
+pytest==7.4.4
+pytest-cov==4.1.0
+pytest-asyncio==0.23.3
+responses==0.24.1
+
+# Monitoring
+prometheus-flask-exporter==0.23.0
+sentry-sdk[flask]==1.39.1
+
+# Logging
+structlog==24.1.0

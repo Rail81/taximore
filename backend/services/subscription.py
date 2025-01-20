@@ -5,6 +5,21 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+async def send_subscription_notification(driver_id, notification_type, **kwargs):
+    """Send notification to driver about subscription status"""
+    from ..services.notification import send_notification  # Avoid circular import
+    
+    templates = {
+        'expiring_soon': 'Ваша подписка истекает через {days} дней. Продлите подписку, чтобы продолжить пользоваться сервисом.',
+        'expired': 'Ваша подписка истекла. Для продолжения работы необходимо продлить подписку.',
+        'auto_renewal_failed': 'Не удалось автоматически продлить подписку. Пожалуйста, проверьте способ оплаты.',
+        'auto_renewal_success': 'Ваша подписка была автоматически продлена до {end_date}.'
+    }
+    
+    message = templates[notification_type].format(**kwargs)
+    await send_notification(driver_id, message)
+    logger.info(f"Sent {notification_type} notification to driver {driver_id}")
+
 async def check_subscription(driver_id):
     """Check if driver has active subscription"""
     subscription = Subscription.query.filter_by(
@@ -19,15 +34,69 @@ async def check_subscription(driver_id):
     if subscription.end_date <= datetime.utcnow():
         subscription.status = 'expired'
         db.session.commit()
+        await send_subscription_notification(driver_id, 'expired')
         return False
     
     # Check if subscription is about to expire
     days_until_expiry = (subscription.end_date - datetime.utcnow()).days
     if days_until_expiry <= 3:
-        # TODO: Send notification to driver
-        pass
+        await send_subscription_notification(
+            driver_id, 
+            'expiring_soon',
+            days=days_until_expiry
+        )
+        
+        # Try auto-renewal if enabled
+        if subscription.auto_renew:
+            await attempt_auto_renewal(subscription)
     
     return True
+
+async def attempt_auto_renewal(subscription):
+    """Attempt to automatically renew subscription"""
+    from ..services.payment import create_payment
+    
+    try:
+        # Get the current plan
+        plan = SubscriptionPlan.query.get(subscription.plan_id)
+        if not plan:
+            logger.error(f"Plan {subscription.plan_id} not found for subscription {subscription.id}")
+            return False
+            
+        # Create new payment
+        payment_result = await create_payment(
+            amount=plan.price,
+            description=f"Автопродление подписки {plan.name}",
+            payment_type=subscription.last_payment_method,
+            subscription_id=subscription.id
+        )
+        
+        if payment_result.get('status') == 'succeeded':
+            # Update subscription dates
+            subscription.start_date = subscription.end_date
+            subscription.end_date = subscription.end_date + timedelta(days=plan.duration_days)
+            db.session.commit()
+            
+            await send_subscription_notification(
+                subscription.driver_id,
+                'auto_renewal_success',
+                end_date=subscription.end_date.strftime('%d.%m.%Y')
+            )
+            return True
+        else:
+            await send_subscription_notification(
+                subscription.driver_id,
+                'auto_renewal_failed'
+            )
+            return False
+            
+    except Exception as e:
+        logger.error(f"Auto-renewal failed for subscription {subscription.id}: {str(e)}")
+        await send_subscription_notification(
+            subscription.driver_id,
+            'auto_renewal_failed'
+        )
+        return False
 
 async def create_subscription(driver_id, plan_id, payment_method='card'):
     """Create new subscription"""
