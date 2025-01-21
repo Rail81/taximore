@@ -80,7 +80,36 @@ stderr_logfile=/var/log/taximore/driver_bot.err.log
 stdout_logfile=/var/log/taximore/driver_bot.out.log
 ```
 
-## 5. Настройка Nginx
+## 5. Настройка Redis для кэширования
+
+```bash
+# Установка Redis
+apt install -y redis-server
+
+# Настройка Redis для работы с внешними подключениями
+sed -i 's/bind 127.0.0.1/bind 0.0.0.0/' /etc/redis/redis.conf
+sed -i 's/# requirepass foobared/requirepass your_redis_password/' /etc/redis/redis.conf
+
+# Перезапуск Redis
+systemctl restart redis-server
+
+# Проверка статуса
+systemctl status redis-server
+
+# Создание директории для кэша карт
+mkdir -p /var/www/taximore/cache/osm
+chown -R www-data:www-data /var/www/taximore/cache
+```
+
+Добавьте в .env файл следующие переменные:
+```bash
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
+REDIS_PASSWORD=your_redis_password
+```
+
+## 6. Настройка Nginx
 
 Создайте файл `/etc/nginx/sites-available/taximore`:
 
@@ -114,7 +143,7 @@ server {
 }
 ```
 
-## 6. Сборка фронтенда
+## 7. Сборка фронтенда
 
 ```bash
 cd /var/www/taximore/frontend
@@ -122,13 +151,13 @@ npm install
 npm run build
 ```
 
-## 7. Настройка SSL с помощью Certbot
+## 8. Настройка SSL с помощью Certbot
 
 ```bash
 certbot --nginx -d your_domain.com
 ```
 
-## 8. Запуск приложения
+## 9. Запуск приложения
 
 ```bash
 # Создание директории для логов
@@ -144,7 +173,7 @@ supervisorctl start all
 systemctl restart nginx
 ```
 
-## 9. Настройка платежной системы (YooKassa)
+## 10. Настройка платежной системы (YooKassa)
 
 ```bash
 # Создание директории для логов платежной системы
@@ -159,7 +188,7 @@ YOOKASSA_SECRET_KEY=your_secret_key
 PAYMENT_WEBHOOK_URL=https://your-domain.com/api/payment/webhook
 ```
 
-## 10. Настройка логирования
+## 11. Настройка логирования
 
 ```bash
 # Создание директорий для логов
@@ -184,7 +213,7 @@ cat > /etc/logrotate.d/taximore << EOF
 EOF
 ```
 
-## 11. Настройка мониторинга
+## 12. Настройка мониторинга
 
 ```bash
 # Установка Prometheus Node Exporter
@@ -215,7 +244,7 @@ groups:
 EOF
 ```
 
-## 12. Настройка резервного копирования
+## 13. Настройка резервного копирования
 
 ```bash
 # Создание скрипта для бэкапа
@@ -240,7 +269,7 @@ chmod +x /usr/local/bin/backup_taximore.sh
 echo "0 3 * * * root /usr/local/bin/backup_taximore.sh" > /etc/cron.d/taximore-backup
 ```
 
-## 13. Проверка развертывания
+## 14. Проверка развертывания
 
 ```bash
 # Проверка статуса всех сервисов

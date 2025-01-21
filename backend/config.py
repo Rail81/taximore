@@ -15,6 +15,21 @@ class Config:
     CUSTOMER_BOT_TOKEN = os.getenv('CUSTOMER_BOT_TOKEN')
     DRIVER_BOT_TOKEN = os.getenv('DRIVER_BOT_TOKEN')
     
+    # Cache Settings
+    CACHE_TYPE = 'simple'
+    CACHE_DEFAULT_TIMEOUT = 300
+    
+    # Redis Settings
+    REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+    REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+    REDIS_DB = int(os.getenv('REDIS_DB', 0))
+    REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', None)
+    
+    # OSM Settings
+    OSM_CACHE_DIR = os.path.join(os.path.dirname(__file__), '..', 'cache', 'osm')
+    OSM_CACHE_TIMEOUT = 86400  # 24 hours
+    OSM_USER_AGENT = 'taximore'
+    
     # City Boundaries (example for Moscow)
     CITY_BOUNDS = {
         'north': 56.0,
@@ -33,10 +48,6 @@ class Config:
     
     # Subscription Settings
     SUBSCRIPTION_GRACE_PERIOD_DAYS = 3
-    
-    # Cache Settings
-    CACHE_TYPE = 'simple'
-    CACHE_DEFAULT_TIMEOUT = 300
     
     # Security Settings
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-jwt-secret-key')
